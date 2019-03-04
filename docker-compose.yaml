@@ -1,0 +1,24 @@
+version: '2.1'
+
+services:
+    shell:
+        image: sameerfarooq/sparts-test:latest
+        container_name: phyo
+        tty: true
+        volumes:
+            - ./phyo:/project/src/tp_category_1.0/sawtooth_category
+        entrypoint: "bash -c \"\
+            apt-get update && \
+            apt-get install -y curl && \
+            rm -rf /var/lib/apt/lists/* && \
+            cd /project/ledger-startup-scripts && \
+            ./sparts_ledger.sh && \
+            cd /project/src/tp_category_1.0 && \
+            python3 setup.py install && \
+            echo 'READY TO EXECUTE THE BASH' && \
+            echo 'docker exec -it phyo bash' && \
+            echo 'curl http://localhost:818/ledger/api/v1/keys' && \
+            echo 'user register_init <public_key> <user_name> <email_address> allow <role>' && \
+            tail -f /dev/null \
+            \""
+            
