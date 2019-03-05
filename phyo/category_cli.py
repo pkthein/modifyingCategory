@@ -184,10 +184,15 @@ def do_list_category(args, config):
         
         if str(category_list) != "[]":
             result = refine_output(str(category_list))
-            output = ret_msg("success","OK","ListOf:CategoryRecord",result)
+            #output = ret_msg("success","OK","ListOf:CategoryRecord",result)
+            result = json.loads(result)
+            result.sort(key=lambda x:x['timestamp'], reverse=True)
+            for e in result:
+                print(e)
         else:
             output = ret_msg("success","OK","ListOf:CategoryRecord",str(category_list))
-        print (output)
+            print(output)
+        #print (output)
     else:
         raise CategoryException("Could not retrieve category listing.")
 
@@ -272,7 +277,7 @@ def refine_output(inputstr):
 
 
 def amend_category_fields(inputstr):
-    output = inputstr.replace("category_name","name").replace("category_id","uuid>_<").replace("\\","")
+    output = inputstr.replace("category_name","name").replace("category_id","uuid").replace("\\","")
     return output
 
 def load_config():

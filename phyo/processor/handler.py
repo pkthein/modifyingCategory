@@ -53,12 +53,10 @@ class CategoryTransactionHandler(TransactionHandler):
 
     def apply(self, transaction, context):
 
-        
-        print('at handler 57')
         stored_category_str = ""
         try:
             # The payload is csv utf-8 encoded string
-            category_id,category_name,description,action, testing = transaction.payload.decode().split(",")
+            category_id,category_name,description,action, testing, timestamp = transaction.payload.decode().split(",")
         except ValueError:
             raise InvalidTransaction("Invalid payload")
 
@@ -87,8 +85,7 @@ class CategoryTransactionHandler(TransactionHandler):
 
 
         if action == "create":
-            category = create_category_payload(category_id,category_name,description, testing)
-            print('apply')
+            category = create_category_payload(category_id,category_name,description, testing, timestamp)
             stored_category_id = category_id
             stored_category = category
             _display("Created a category.")
@@ -106,8 +103,8 @@ class CategoryTransactionHandler(TransactionHandler):
         return addresses
 
 
-def create_category_payload(category_id,category_name,description, testing):
-    categoryP = {'category_id': category_id,'category_name': category_name,'description': description, 'test': testing}
+def create_category_payload(category_id,category_name,description, testing, timestamp):
+    categoryP = {'category_id': category_id,'category_name': category_name,'description': description, 'test': testing, 'timestamp': timestamp}
     return categoryP
 
 

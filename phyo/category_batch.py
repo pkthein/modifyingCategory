@@ -20,7 +20,7 @@ from base64 import b64encode
 import time
 import requests
 import yaml
-
+import datetime
 #import sawtooth_signing.secp256k1_signer as signing
 
 #
@@ -49,7 +49,7 @@ class CategoryBatch:
 
     def create_category(self, category_id,category_name,description,private_key,public_key, testing):
         return self.send_category_transactions(category_id,category_name,description, "create",
-                                private_key,public_key, testing)
+                                private_key,public_key, testing, str(datetime.datetime.utcnow()))
 
     def list_category(self):
         category_prefix = self._get_prefix()
@@ -101,13 +101,10 @@ class CategoryBatch:
             headers['Content-Type'] = content_type
 
         try:
-            print('at batch 104')
             if data is not None:
                 result = requests.post(url, headers=headers, data=data)
-                print('post')
             else:
                 result = requests.get(url, headers=headers)
-                print('get')
 
             if result.status_code == 404:
                 raise CategoryException("No such Category: {}".format(category_id))
@@ -121,12 +118,11 @@ class CategoryBatch:
         
         return result.text
 
-    def send_category_transactions(self, category_id,category_name,description, action,private_key,public_key, testing):
-        print('at batch 123')
+    def send_category_transactions(self, category_id,category_name,description, action,private_key,public_key, testing, timestamp):
         self._public_key = public_key
         self._private_key = private_key
         
-        payload = ",".join([category_id,category_name,description, action, testing]).encode()
+        payload = ",".join([category_id,category_name,description, action, testing, timestamp]).encode()
 
         # Form the address
         address = self._get_address(category_id)
@@ -161,7 +157,6 @@ class CategoryBatch:
         )
 
     def _create_batch_list(self, transactions):
-        print('at batsh 162')
         transaction_signatures = [t.header_signature for t in transactions]
 
         header = BatchHeader(
