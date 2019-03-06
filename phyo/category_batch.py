@@ -46,11 +46,11 @@ def _sha512(data):
 class CategoryBatch:
     def __init__(self, base_url):
         self._base_url = base_url
-
-    def create_category(self, category_id,category_name,description,private_key,public_key, testing):
+    
+    def create_category(self, category_id,category_name,description,private_key,public_key):
         return self.send_category_transactions(category_id,category_name,description, "create",
-                                private_key,public_key, testing, str(datetime.datetime.utcnow()))
-
+                                private_key,public_key, str(datetime.datetime.utcnow()))
+                                
     def list_category(self):
         category_prefix = self._get_prefix()
 
@@ -118,11 +118,11 @@ class CategoryBatch:
         
         return result.text
 
-    def send_category_transactions(self, category_id,category_name,description, action,private_key,public_key, testing, timestamp):
+    def send_category_transactions(self, category_id, category_name, description, action,private_key,public_key, timestamp):
         self._public_key = public_key
         self._private_key = private_key
         
-        payload = ",".join([category_id,category_name,description, action, testing, timestamp]).encode()
+        payload = ",".join([category_id,category_name,description, action, timestamp]).encode()
 
         # Form the address
         address = self._get_address(category_id)

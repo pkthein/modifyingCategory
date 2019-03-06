@@ -45,6 +45,40 @@ from sawtooth_category.exceptions import CategoryException
 
 DISTRIBUTION_NAME = 'sawtooth-category'
 
+################################################################################
+def create_console_handler(verbose_level):
+    clog = logging.StreamHandler()
+    formatter = ColoredFormatter(
+        "%(log_color)s[%(asctime)s %(levelname)-8s%(module)s]%(reset)s "
+        "%(white)s%(message)s",
+        datefmt="%H:%M:%S",
+        reset=True,
+        log_colors={
+            'DEBUG': 'cyan',
+            'INFO': 'green',
+            'WARNING': 'yellow',
+            'ERROR': 'red',
+            'CRITICAL': 'red',
+        })
+
+    clog.setFormatter(formatter)
+
+    if verbose_level == 0:
+        clog.setLevel(logging.WARN)
+    elif verbose_level == 1:
+        clog.setLevel(logging.INFO)
+    else:
+        clog.setLevel(logging.DEBUG)
+
+    return clog
+
+def setup_loggers(verbose_level):
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(create_console_handler(verbose_level))
+################################################################################
+#
+################################################################################
 def add_create_parser(subparsers, parent_parser):
     parser = subparsers.add_parser('create', parents=[parent_parser])
 
@@ -74,52 +108,13 @@ def add_create_parser(subparsers, parent_parser):
         help='Provide User Public Key')
     
     parser.add_argument(
-        'user',
-        type=str,
-        help='Provide user name')
-
-    parser.add_argument(
         '--disable-client-validation',
         action='store_true',
         default=False,
         help='disable client validation')
 
-def create_console_handler(verbose_level):
-    clog = logging.StreamHandler()
-    formatter = ColoredFormatter(
-        "%(log_color)s[%(asctime)s %(levelname)-8s%(module)s]%(reset)s "
-        "%(white)s%(message)s",
-        datefmt="%H:%M:%S",
-        reset=True,
-        log_colors={
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red',
-        })
-
-    clog.setFormatter(formatter)
-
-    if verbose_level == 0:
-        clog.setLevel(logging.WARN)
-    elif verbose_level == 1:
-        clog.setLevel(logging.INFO)
-    else:
-        clog.setLevel(logging.DEBUG)
-
-    return clog
-
-
-def setup_loggers(verbose_level):
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(create_console_handler(verbose_level))
-
-
 def add_list_category_parser(subparsers, parent_parser):
     subparsers.add_parser('list-category', parents=[parent_parser])
-
 
 def add_retrieve_category_parser(subparsers, parent_parser):
     parser = subparsers.add_parser('retrieve', parents=[parent_parser])
@@ -129,7 +124,14 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         type=str,
         help='an identifier for the category')
 
+def add_update_category_parser(subparsers, parent_parser):
+    # TODO: 
+    parser = subparsers.add_parser('update', parents=[parent_parser])
 
+    parser.add_argument(
+        'category_id',
+        type=str,
+        help='an identifier for the category')
 
 def create_parent_parser(prog_name):
     parent_parser = argparse.ArgumentParser(prog=prog_name, add_help=False)
@@ -163,10 +165,9 @@ def create_parser(prog_name):
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
 
     add_create_parser(subparsers, parent_parser)
-    
-    
     add_list_category_parser(subparsers, parent_parser)
     add_retrieve_category_parser(subparsers, parent_parser)
+    add_update_category_parser(subparsers, parent_parser)
 
     return parser
 
@@ -217,7 +218,7 @@ def do_create_category(args, config):
     description = args.description
     private_key = args.private_key
     public_key = args.public_key
-    testing = args.user
+    
     # context = create_context('secp256k1')
     
     # #
@@ -245,14 +246,16 @@ def do_create_category(args, config):
         if status == 'success' and message == 'authorized':
             b_url = config.get('DEFAULT', 'url')
             client = CategoryBatch(base_url=b_url)
-            response = client.create_category(category_id,category_name,description,private_key,public_key, testing)
+            response = client.create_category(category_id,category_name,description,private_key,public_key)
             print_msg(response)
         else:
             print(output)
     else:
         print(output)
    
-
+def do_update_category(args, config):
+    # TODO:
+    return 0
 
 
 def filter_output(result):    
@@ -316,6 +319,8 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
         do_list_category(args, config)
     elif args.command == 'retrieve':
         do_retrieve_category(args, config)
+    elif args.command == 'update':
+        do_update_category(args, config)
     else:
         raise CategoryException("invalid command: {}".format(args.command))
 

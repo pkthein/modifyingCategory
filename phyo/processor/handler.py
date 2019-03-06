@@ -56,7 +56,7 @@ class CategoryTransactionHandler(TransactionHandler):
         stored_category_str = ""
         try:
             # The payload is csv utf-8 encoded string
-            category_id,category_name,description,action, testing, timestamp = transaction.payload.decode().split(",")
+            category_id, category_name, description, action, timestamp = transaction.payload.decode().split(",")
         except ValueError:
             raise InvalidTransaction("Invalid payload")
 
