@@ -74,9 +74,9 @@ def add_create_parser(subparsers, parent_parser):
         help='Provide User Public Key')
     
     parser.add_argument(
-        'testing',
+        'user',
         type=str,
-        help='Provide category name')
+        help='Provide user name')
 
     parser.add_argument(
         '--disable-client-validation',
@@ -184,15 +184,14 @@ def do_list_category(args, config):
         
         if str(category_list) != "[]":
             result = refine_output(str(category_list))
-            #output = ret_msg("success","OK","ListOf:CategoryRecord",result)
             result = json.loads(result)
             result.sort(key=lambda x:x['timestamp'], reverse=True)
-            for e in result:
-                print(e)
+            result = json.dumps(result)
+            
+            output = ret_msg("success","OK","ListOf:CategoryRecord",result)
         else:
             output = ret_msg("success","OK","ListOf:CategoryRecord",str(category_list))
-            print(output)
-        #print (output)
+        print (output)
     else:
         raise CategoryException("Could not retrieve category listing.")
 
@@ -218,7 +217,7 @@ def do_create_category(args, config):
     description = args.description
     private_key = args.private_key
     public_key = args.public_key
-    testing = args.testing
+    testing = args.user
     # context = create_context('secp256k1')
     
     # #
