@@ -21,6 +21,7 @@ import time
 import requests
 import yaml
 import datetime
+import json
 #import sawtooth_signing.secp256k1_signer as signing
 
 #
@@ -46,8 +47,11 @@ def _sha512(data):
 class CategoryBatch:
     def __init__(self, base_url):
         self._base_url = base_url
-    
-    def create_category(self, category_id,category_name,description,private_key,public_key):
+################################################################################
+#
+################################################################################    
+    def create_category(self, category_id, category_name, description, 
+                            private_key, public_key):
         return self.send_category_transactions(category_id,category_name,description, "create",
                                 private_key,public_key, str(datetime.datetime.utcnow()))
                                 
@@ -70,15 +74,36 @@ class CategoryBatch:
 
     def retreive_category(self, category_id):
         address = self._get_address(category_id)
+        result = self._send_request("state/{}".format(address), category_id=category_id)
 
-        result = self._send_request("state/{}".format(address), category_id=category_id
-                                   )
         try:
             return base64.b64decode(yaml.safe_load(result)["data"])
 
         except BaseException:
             return None
-
+    
+    def update_category(self, category_id, category_name, description,
+                            private_key, public_key):
+        response_bytes = self.retreive_category(category_id)
+        
+        if response_bytes != None:
+            response = str(response_bytes)
+            response = response[response.find('{') : response.find('}') + 1]
+            
+            jresponse = json.loads(response)
+            
+            if jresponse['category_name'] == category_name and jresponse['description'] == description:
+                return None
+            else:
+                return self.send_category_transactions(category_id, category_name,
+                            description, "update", private_key,public_key,
+                            str(datetime.datetime.utcnow()))
+                            
+        return None
+    
+################################################################################
+#
+################################################################################
     def _get_prefix(self):
         return _sha512('category'.encode('utf-8'))[0:6]
 
@@ -90,7 +115,6 @@ class CategoryBatch:
     def _send_request(
             self, suffix, data=None,
             content_type=None, category_id=None):
-
         if self._base_url.startswith("http://"):
             url = "{}/{}".format(self._base_url, suffix)
         else:
@@ -114,11 +138,14 @@ class CategoryBatch:
                     result.status_code, result.reason))
 
         except BaseException as err:
+            print(err)
             raise CategoryException(err)
         
         return result.text
 
-    def send_category_transactions(self, category_id, category_name, description, action,private_key,public_key, timestamp):
+    def send_category_transactions(self, category_id, category_name, description, 
+                                    action,private_key,public_key, timestamp):
+        
         self._public_key = public_key
         self._private_key = private_key
         
@@ -128,15 +155,15 @@ class CategoryBatch:
         address = self._get_address(category_id)
 
         header = TransactionHeader(
-            signer_public_key=self._public_key,
-            family_name="category",
-            family_version="1.0",
-            inputs=[address],
-            outputs=[address],
-            dependencies=[],
+            signer_public_key = self._public_key,
+            family_name = "category",
+            family_version = "1.0",
+            inputs = [address],
+            outputs = [address],
+            dependencies = [],
             # payload_encoding="csv-utf8",
-            payload_sha512=_sha512(payload),
-            batcher_public_key=self._public_key,
+            payload_sha512 = _sha512(payload),
+            batcher_public_key = self._public_key,
             nonce=time.time().hex().encode()
         ).SerializeToString()
 
@@ -160,16 +187,16 @@ class CategoryBatch:
         transaction_signatures = [t.header_signature for t in transactions]
 
         header = BatchHeader(
-            signer_public_key=self._public_key,
-            transaction_ids=transaction_signatures
+            signer_public_key = self._public_key,
+            transaction_ids = transaction_signatures
         ).SerializeToString()
 
         signature = CryptoFactory(create_context('secp256k1')) \
             .new_signer(Secp256k1PrivateKey.from_hex(self._private_key)).sign(header)
 
         batch = Batch(
-            header=header,
-            transactions=transactions,
-            header_signature=signature
+            header = header,
+            transactions = transactions,
+            header_signature = signature
         )
         return BatchList(batches=[batch])

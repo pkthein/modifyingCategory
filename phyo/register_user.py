@@ -1,3 +1,5 @@
+# registers the docker runner as admin
+
 import os
 
 file = open('keys.txt', 'r')

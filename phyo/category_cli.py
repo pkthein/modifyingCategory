@@ -44,7 +44,6 @@ from sawtooth_category.exceptions import CategoryException
 
 
 DISTRIBUTION_NAME = 'sawtooth-category'
-
 ################################################################################
 def create_console_handler(verbose_level):
     clog = logging.StreamHandler()
@@ -77,7 +76,7 @@ def setup_loggers(verbose_level):
     logger.setLevel(logging.DEBUG)
     logger.addHandler(create_console_handler(verbose_level))
 ################################################################################
-#
+#                                   OBJ                                        #
 ################################################################################
 def add_create_parser(subparsers, parent_parser):
     parser = subparsers.add_parser('create', parents=[parent_parser])
@@ -125,13 +124,38 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         help='an identifier for the category')
 
 def add_update_category_parser(subparsers, parent_parser):
-    # TODO: 
     parser = subparsers.add_parser('update', parents=[parent_parser])
 
     parser.add_argument(
         'category_id',
         type=str,
         help='an identifier for the category')
+        
+    parser.add_argument(
+        'category_name',
+        type=str,
+        help='Provide category name')
+    
+    parser.add_argument(
+        'description',
+        type=str,
+        help='provide description')
+      
+    parser.add_argument(
+        'private_key',
+        type=str,
+        help='Provide User Private Key')
+    
+    parser.add_argument(
+        'public_key',
+        type=str,
+        help='Provide User Public Key')
+    
+    parser.add_argument(
+        '--disable-client-validation',
+        action='store_true',
+        default=False,
+        help='disable client validation')
 
 def create_parent_parser(prog_name):
     parent_parser = argparse.ArgumentParser(prog=prog_name, add_help=False)
@@ -154,7 +178,6 @@ def create_parent_parser(prog_name):
 
     return parent_parser
 
-
 def create_parser(prog_name):
     parent_parser = create_parent_parser(prog_name)
 
@@ -170,10 +193,9 @@ def create_parser(prog_name):
     add_update_category_parser(subparsers, parent_parser)
 
     return parser
-
-
-
-
+################################################################################
+#                               FUNCTIONS                                      #
+################################################################################
 def do_list_category(args, config):
     b_url = config.get('DEFAULT', 'url')
   
@@ -196,7 +218,6 @@ def do_list_category(args, config):
     else:
         raise CategoryException("Could not retrieve category listing.")
 
-
 def do_retrieve_category(args, config):
     category_id = args.category_id
     b_url = config.get('DEFAULT', 'url') 
@@ -206,12 +227,11 @@ def do_retrieve_category(args, config):
 
     if data is not None:
         result = filter_output(str(data))
-        output = ret_msg("success","OK","CategoryRecord",result) 
-        print (output)
+        output = ret_msg("success", "OK", "CategoryRecord", result) 
+        print(output)
     else:
         raise CategoryException("Category not found: {}".format(category_id))
-
-
+        
 def do_create_category(args, config):
     category_id = args.category_id
     category_name = args.category_name
@@ -234,20 +254,22 @@ def do_create_category(args, config):
     payload = json.dumps(key)
     
     headers = {'content-type': 'application/json'}
-    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth",data=json.dumps(key),headers=headers)
+    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", data=json.dumps(key), headers=headers)
     output = response.content.decode("utf-8").strip()
     statusinfo = json.loads(output)
        
-    if statusinfo.get('status')and statusinfo.get('message'):
+    if statusinfo.get('status') and statusinfo.get('message'):
             
         status = statusinfo['status']
         message = statusinfo['message']
             
         if status == 'success' and message == 'authorized':
+            
             b_url = config.get('DEFAULT', 'url')
             client = CategoryBatch(base_url=b_url)
-            response = client.create_category(category_id,category_name,description,private_key,public_key)
+            response = client.create_category(category_id, category_name, description, private_key, public_key)
             print_msg(response)
+            
         else:
             print(output)
     else:
@@ -255,9 +277,43 @@ def do_create_category(args, config):
    
 def do_update_category(args, config):
     # TODO:
-    return 0
-
-
+    category_id = args.category_id
+    category_name = args.category_name
+    description = args.description
+    private_key = args.private_key
+    public_key = args.public_key
+    
+    payload = "{}"
+    key = json.loads(payload)
+    key["publickey"] = public_key
+    key["privatekey"] = private_key
+    key["allowedrole"]=[{"role":"admin"},{"role":"member"}]
+    payload = json.dumps(key)
+    
+    headers = {'content-type': 'application/json'}
+    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", data=json.dumps(key), headers=headers)
+    output = response.content.decode("utf-8").strip()
+    statusinfo = json.loads(output)
+    
+    if statusinfo.get('status') and statusinfo.get('message'):
+            
+        status = statusinfo['status']
+        message = statusinfo['message']
+            
+        if status == 'success' and message == 'authorized':
+            
+            b_url = config.get('DEFAULT', 'url')
+            client = CategoryBatch(base_url=b_url)
+            response = client.update_category(category_id, category_name, description, private_key, public_key)
+            print_msg(response)
+            
+        else:
+            print(output)
+    else:
+        print(output)
+################################################################################
+#                                   PRINT                                      #
+################################################################################
 def filter_output(result):    
     catlist = result.split(',',1)
     output = catlist[1]
@@ -277,7 +333,6 @@ def refine_output(inputstr):
     joutput = amend_category_fields(joutput)
     return joutput
 
-
 def amend_category_fields(inputstr):
     output = inputstr.replace("category_name","name").replace("category_id","uuid").replace("\\","")
     return output
@@ -288,16 +343,16 @@ def load_config():
     config.set('DEFAULT', 'url', 'http://127.0.0.1:8008')
     return config
 
-
-            
 def print_msg(response):
-    
-    if "batch_statuses?id" in response:
+    if response == None:
+        print(ret_msg("failed","Exception raised","EmptyRecord","{}"))
+    elif "batch_statuses?id" in response:
         print(ret_msg("success","OK","EmptyRecord","{}"))
     else:
         print(ret_msg("failed","Exception raised","EmptyRecord","{}"))
-        
-        
+################################################################################
+#                                   MAIN                                       #
+################################################################################        
 def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     if args is None:
         args = sys.argv[1:]
@@ -324,8 +379,7 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     else:
         raise CategoryException("invalid command: {}".format(args.command))
 
-
-def ret_msg(status,message,result_type,result):
+def ret_msg(status, message, result_type, result):
     msgJSON = "{}"
     key = json.loads(msgJSON)
     key["status"] = status
@@ -335,7 +389,6 @@ def ret_msg(status,message,result_type,result):
    
     msgJSON = json.dumps(key)
     return msgJSON
-
 
 def main_wrapper():
     try:
