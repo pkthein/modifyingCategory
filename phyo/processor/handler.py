@@ -72,7 +72,6 @@ class CategoryTransactionHandler(TransactionHandler):
         data_address = create_category_address(self._namespace_prefix, 
                                                 category_id)
 
-        #state_entries = state_store.get([data_address])
         state_entries = context.get_state([data_address])
         # Retrieve data from state storage
         if len(state_entries) != 0:
@@ -106,16 +105,11 @@ class CategoryTransactionHandler(TransactionHandler):
             stored_category = category
             _display("Updated a category.")
         
-        # Insert data back
+        
         stored_cat_str = json.dumps(stored_category)
         data=",".join([stored_category_id,stored_cat_str]).encode()
         addresses = context.set_state({data_address:data})
-#        addresses = context.set([
- #           StateEntry(
-  #              address=data_address,
-   #             data=",".join([stored_category_id, stored_supp_str]).encode()
-    #        )
-        #])
+     
         return addresses
 
 
@@ -157,4 +151,3 @@ def _display(msg):
     for line in msg:
         LOGGER.debug("+ " + line.center(length) + " +")
     LOGGER.debug("+" + (length + 2) * "-" + "+")
-
