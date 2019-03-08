@@ -78,17 +78,44 @@ class CategoryBatch:
         except BaseException:
             return None
 
-    def retreive_category(self, category_id):
-        address = self._get_address(category_id)
-        result = self._send_request("state/{}".format(address), \
-                    category_id=category_id)
-
-        try:
-            return base64.b64decode(yaml.safe_load(result)["data"])
-
-        except BaseException:
-            return None
+    def retreive_category(self, category_id, all_flag=False):
+        if all_flag:
+            
+            retVal = []
+            response = self.retreive_category(category_id).decode()
+            
+            response = response[response.find('{'):]
+            response = json.loads(response)
+            
+            retVal.append(response)
+            
+            while str(response['prev_state']) != 'genesis':
+                
+                (category_id, category_name, description, action, prev , cur, 
+                timestamp) = self._get_payload_(int(response['prev_state'])).\
+                                decode().split(',')
+                
+                response = self._reconstruct_response(category_id, 
+                                category_name, description, action, prev , cur, 
+                                timestamp)
+                
+                retVal.append(response)
+            
+            retVal = str(retVal).replace('category_id', 'uuid'). \
+                        replace('category_name', 'name')
+            
+            return json.dumps(retVal)
+        else:        
+            address = self._get_address(category_id)
+            result = self._send_request("state/{}".format(address), \
+                        category_id=category_id)
     
+            try:
+                return base64.b64decode(yaml.safe_load(result)["data"])
+    
+            except BaseException:
+                return None
+        
     def update_category(self, category_id, category_name, description,
                             private_key, public_key):
         response_bytes = self.retreive_category(category_id)
@@ -113,7 +140,7 @@ class CategoryBatch:
 
     def test_category(self):
         category_prefix = self._get_prefix()
-
+        
         result = self._send_request(
             "blocks?={}".format(category_prefix)
         )
@@ -121,11 +148,10 @@ class CategoryBatch:
         if result != None or result != '':
             result = json.loads(result)
             
-            print(result['data'][-4])
-            print(len(result['data']))
-            print(result['head'], type(result['head']))
-            
-            
+            payload = result['data'][-4]['batches'][0]['transactions'][0]['payload']
+            print(payload, type(payload))
+            print(base64.b64decode(payload))
+            # print(result['data'][-4]['header_signature'])
 ################################################################################
 #                           PRIVATE FUNCTIONS                                  #
 ################################################################################
@@ -148,6 +174,27 @@ class CategoryBatch:
             result = json.loads(result)
             return str(len(result['data']))
         return None
+    
+    def _get_payload_(self, blocknum):
+        category_prefix = self._get_prefix()
+        
+        result = self._send_request(
+            "blocks?={}".format(category_prefix)
+        )
+        
+        if result != None or result != '':
+            result = json.loads(result)
+            payload = result['data'][-(blocknum + 1)]['batches'][0]\
+                        ['transactions'][0]['payload']
+            
+            return base64.b64decode(payload)
+        return None
+    
+    def _reconstruct_response(self, category_id, category_name, description, 
+                                action, prev , cur, timestamp):
+        return {'category_id': category_id,'category_name': category_name,
+                'description': description, 'timestamp': timestamp, 
+                'prev_state': prev, 'cur_state': cur}
         
     def _send_request(
             self, suffix, data=None,

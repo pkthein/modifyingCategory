@@ -124,6 +124,12 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         'category_id',
         type=str,
         help='an identifier for the category')
+        
+    parser.add_argument(
+        '--all',
+        action='store_true',
+        default=False,
+        help='show all the data')    
 
 def add_update_category_parser(subparsers, parent_parser):
     parser = subparsers.add_parser('update', parents=[parent_parser])
@@ -227,18 +233,27 @@ def do_list_category(args, config):
         raise CategoryException("Could not retrieve category listing.")
 
 def do_retrieve_category(args, config):
+    all_flag = args.all
     category_id = args.category_id
-    b_url = config.get('DEFAULT', 'url') 
+    
+    b_url = config.get('DEFAULT', 'url')
+    
     client = CategoryBatch(base_url=b_url)
 
-    data = client.retreive_category(category_id)
-
+    data = client.retreive_category(category_id, all_flag)
+    
     if data is not None:
-        result = filter_output(str(data))
-        output = ret_msg("success", "OK", "CategoryRecord", result) 
+        
+        if all_flag == False:
+            result = filter_output(str(data))
+            output = ret_msg("success", "OK", "CategoryRecord", result)
+        else:
+            output = ret_msg("success", "OK", "CategoryRecord", data)
+            
         print(output)
     else:
         raise CategoryException("Category not found: {}".format(category_id))
+        
         
 def do_create_category(args, config):
     category_id = args.category_id
@@ -246,13 +261,6 @@ def do_create_category(args, config):
     description = args.description
     private_key = args.private_key
     public_key = args.public_key
-    
-    # context = create_context('secp256k1')
-    
-    # #
-    # private_key = context.new_random_private_key()
-    # public_key = context.get_public_key(private_key)
-    # #
 
     payload = "{}"
     key = json.loads(payload)
@@ -286,7 +294,6 @@ def do_create_category(args, config):
         print(output)
    
 def do_update_category(args, config):
-    # TODO:
     category_id = args.category_id
     category_name = args.category_name
     description = args.description
