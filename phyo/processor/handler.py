@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-
+################################################################################
+#                               LIBS & DEPS                                    #
+################################################################################
 import hashlib
 import logging
 import json
@@ -25,12 +27,16 @@ from sawtooth_sdk.processor.exceptions import InternalError
 from sawtooth_sdk.processor.handler import TransactionHandler
 
 LOGGER = logging.getLogger(__name__)
-
+################################################################################
+#                               LIBS & DEPS                                    #
+################################################################################
 class StateEntry:
     def __init__(self, address, data):
         self.address = address
         self.data = data
-
+################################################################################
+#                               LIBS & DEPS                                    #
+################################################################################
 class CategoryTransactionHandler(TransactionHandler):
     def __init__(self, namespace_prefix):
         self._namespace_prefix = namespace_prefix
@@ -56,13 +62,15 @@ class CategoryTransactionHandler(TransactionHandler):
         stored_category_str = ""
         try:
             # The payload is csv utf-8 encoded string
-            category_id, category_name, description, action, timestamp = transaction.payload.decode().split(",")
+            category_id, category_name, description, action, prev , cur, timestamp = \
+                transaction.payload.decode().split(",")
         except ValueError:
             raise InvalidTransaction("Invalid payload")
 
         validate_transaction(category_id, category_name, description, action)
 
-        data_address = create_category_address(self._namespace_prefix, category_id)
+        data_address = create_category_address(self._namespace_prefix, 
+                                                category_id)
 
         #state_entries = state_store.get([data_address])
         state_entries = context.get_state([data_address])
@@ -85,13 +93,15 @@ class CategoryTransactionHandler(TransactionHandler):
 
 
         if action == "create":
-            category = create_category_payload(category_id, category_name, description, timestamp)
+            category = create_category_payload(category_id, category_name, 
+                                    description, prev, cur, timestamp)
             stored_category_id = category_id
             stored_category = category
             _display("Created a category.")
         
         if action == 'update':
-            category = create_category_payload(category_id, category_name, description, timestamp)
+            category = create_category_payload(category_id, category_name, 
+                                    description, prev , cur, timestamp)
             stored_category_id = category_id
             stored_category = category
             _display("Updated a category.")
@@ -109,8 +119,11 @@ class CategoryTransactionHandler(TransactionHandler):
         return addresses
 
 
-def create_category_payload(category_id,category_name,description, timestamp):
-    categoryP = {'category_id': category_id,'category_name': category_name,'description': description, 'timestamp': timestamp}
+def create_category_payload(category_id,category_name,description, 
+                            prev, cur, timestamp):
+    categoryP = {'category_id': category_id,'category_name': category_name,
+                'description': description, 'timestamp': timestamp, 
+                'prev_state': prev, 'cur_state': cur}
     return categoryP
 
 

@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-
+################################################################################
+#                               LIBS & DEPS                                    #
+################################################################################
 from __future__ import print_function
 
 import argparse
@@ -157,6 +159,9 @@ def add_update_category_parser(subparsers, parent_parser):
         default=False,
         help='disable client validation')
 
+def add_test_category_parser(subparsers, parent_parser):
+    subparsers.add_parser('test', parents=[parent_parser])
+
 def create_parent_parser(prog_name):
     parent_parser = argparse.ArgumentParser(prog=prog_name, add_help=False)
     parent_parser.add_argument(
@@ -191,7 +196,9 @@ def create_parser(prog_name):
     add_list_category_parser(subparsers, parent_parser)
     add_retrieve_category_parser(subparsers, parent_parser)
     add_update_category_parser(subparsers, parent_parser)
-
+    
+    add_test_category_parser(subparsers, parent_parser)
+    
     return parser
 ################################################################################
 #                               FUNCTIONS                                      #
@@ -211,9 +218,10 @@ def do_list_category(args, config):
             result.sort(key=lambda x:x['timestamp'], reverse=True)
             result = json.dumps(result)
             
-            output = ret_msg("success","OK","ListOf:CategoryRecord",result)
+            output = ret_msg("success", "OK", "ListOf:CategoryRecord", result)
         else:
-            output = ret_msg("success","OK","ListOf:CategoryRecord",str(category_list))
+            output = ret_msg("success", "OK", "ListOf:CategoryRecord", 
+                        str(category_list))
         print (output)
     else:
         raise CategoryException("Could not retrieve category listing.")
@@ -254,7 +262,8 @@ def do_create_category(args, config):
     payload = json.dumps(key)
     
     headers = {'content-type': 'application/json'}
-    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", data=json.dumps(key), headers=headers)
+    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", 
+                    data=json.dumps(key), headers=headers)
     output = response.content.decode("utf-8").strip()
     statusinfo = json.loads(output)
        
@@ -267,7 +276,8 @@ def do_create_category(args, config):
             
             b_url = config.get('DEFAULT', 'url')
             client = CategoryBatch(base_url=b_url)
-            response = client.create_category(category_id, category_name, description, private_key, public_key)
+            response = client.create_category(category_id, category_name, 
+                            description, private_key, public_key)
             print_msg(response)
             
         else:
@@ -291,7 +301,8 @@ def do_update_category(args, config):
     payload = json.dumps(key)
     
     headers = {'content-type': 'application/json'}
-    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", data=json.dumps(key), headers=headers)
+    response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", 
+                    data=json.dumps(key), headers=headers)
     output = response.content.decode("utf-8").strip()
     statusinfo = json.loads(output)
     
@@ -304,25 +315,35 @@ def do_update_category(args, config):
             
             b_url = config.get('DEFAULT', 'url')
             client = CategoryBatch(base_url=b_url)
-            response = client.update_category(category_id, category_name, description, private_key, public_key)
+            response = client.update_category(category_id, category_name, 
+                            description, private_key, public_key)
             print_msg(response)
             
         else:
             print(output)
     else:
         print(output)
+        
+def do_test(args, config):
+    b_url = config.get('DEFAULT', 'url')
+  
+    client = CategoryBatch(base_url=b_url)
+
+    category_test = client.test_category()
 ################################################################################
 #                                   PRINT                                      #
 ################################################################################
 def filter_output(result):    
     catlist = result.split(',',1)
     output = catlist[1]
-    output = output.replace("category_name","name").replace("category_id","uuid").replace("\\","")
+    output = output.replace("category_name","name") \
+                .replace("category_id","uuid").replace("\\","")
     output = output[:-1]
     return output
 
 def refine_output(inputstr):
-    outputstr=inputstr.replace('b\'','').replace('}\'','}').replace("}]","")
+    outputstr = inputstr.replace('b\'','') \
+                .replace('}\'','}').replace("}]","")
     catlist = outputstr.split("},")
     categorylist = []
     for line in catlist:
@@ -334,7 +355,8 @@ def refine_output(inputstr):
     return joutput
 
 def amend_category_fields(inputstr):
-    output = inputstr.replace("category_name","name").replace("category_id","uuid").replace("\\","")
+    output = inputstr.replace("category_name","name") \
+                .replace("category_id","uuid").replace("\\","")
     return output
 
 def load_config():
@@ -376,6 +398,8 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
         do_retrieve_category(args, config)
     elif args.command == 'update':
         do_update_category(args, config)
+    elif args.command == 'test':
+        do_test(args, config)
     else:
         raise CategoryException("invalid command: {}".format(args.command))
 
@@ -410,3 +434,6 @@ def main_wrapper():
     except BaseException as err:
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
+################################################################################
+#                                                                              #
+################################################################################
