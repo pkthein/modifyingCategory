@@ -23,7 +23,7 @@ services:
             curl http://localhost:818/ledger/api/v1/keys > keys.txt && echo '' >> keys.txt && \
             echo '====================READY TO EXECUTE THE BASH====================' && \
             echo 'docker exec -it phyo bash' && \
-            python3 register_user.py && \
+            python3 lazy_user.py && \
             rm -rf keys.txt && \
             echo '====================READY TO EXECUTE THE BASH====================' && \
             tail -f /dev/null \
