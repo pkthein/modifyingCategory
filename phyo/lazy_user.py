@@ -12,10 +12,7 @@ for line in file:
 	line = line.split()
 
 pri_key = line[1][:-1]
-pub_key = line[-1]	
-
-#os.system("echo PRIVATE_KEY : " + pri_key)
-#os.system("echo PUBLIC_KEY : " + pub_key)
+pub_key = line[-1]
 
 user = os.environ['NAME_']
 email = os.environ['EMAIL_']
