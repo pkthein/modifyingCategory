@@ -129,7 +129,13 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         '--all',
         action='store_true',
         default=False,
-        help='show all the data')    
+        help='show history of uuid')
+        
+    parser.add_argument(
+        '--range',
+        nargs=2,
+        default=None,
+        help='show history of uuid within the range')
 
 def add_update_category_parser(subparsers, parent_parser):
     parser = subparsers.add_parser('update', parents=[parent_parser])
@@ -234,13 +240,16 @@ def do_list_category(args, config):
 
 def do_retrieve_category(args, config):
     all_flag = args.all
+    range_flag = args.range
+    
     category_id = args.category_id
     
-    b_url = config.get('DEFAULT', 'url')
+    if range_flag != None:
+        all_flag = True
     
+    b_url = config.get('DEFAULT', 'url')
     client = CategoryBatch(base_url=b_url)
-
-    data = client.retreive_category(category_id, all_flag)
+    data = client.retreive_category(category_id, all_flag, range_flag)
     
     if data is not None:
         

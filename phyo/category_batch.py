@@ -78,7 +78,7 @@ class CategoryBatch:
         except BaseException:
             return None
 
-    def retreive_category(self, category_id, all_flag=False):
+    def retreive_category(self, category_id, all_flag=False, range_flag=None):
         if all_flag:
             
             retVal = []
@@ -87,8 +87,14 @@ class CategoryBatch:
             response = response[response.find('{'):]
             response = json.loads(response)
             
-            retVal.append(response)
-            
+            if range_flag != None:
+                curTime = int(response['timestamp'].split()[0].replace('-', ''))
+                if (curTime <= int(range_flag[1]) and 
+                        curTime >= int(range_flag[0])):
+                    retVal.append(response)
+            else:
+                retVal.append(response)
+        
             while str(response['prev_state']) != 'genesis':
                 
                 (category_id, category_name, description, action, prev , cur, 
@@ -99,7 +105,13 @@ class CategoryBatch:
                                 category_name, description, action, prev , cur, 
                                 timestamp)
                 
-                retVal.append(response)
+                if range_flag != None:
+                    curTime = int(timestamp.split()[0].replace('-', ''))
+                    if (curTime <= int(range_flag[1]) and 
+                            curTime >= int(range_flag[0])):
+                        retVal.append(response)
+                else:
+                    retVal.append(response)
             
             retVal = str(retVal).replace('category_id', 'uuid'). \
                         replace('category_name', 'name')
