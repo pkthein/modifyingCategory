@@ -115,9 +115,9 @@ class CategoryTransactionHandler(TransactionHandler):
 
 def create_category_payload(category_id,category_name,description, 
                             prev, cur, timestamp):
-    categoryP = {'category_id': category_id,'category_name': category_name,
+    categoryP = {'uuid': category_id,'name': category_name,
                 'description': description, 'timestamp': timestamp, 
-                'prev_state': prev, 'cur_state': cur}
+                'prev_block': prev, 'cur_block': cur}
     return categoryP
 
 

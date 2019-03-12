@@ -126,7 +126,7 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         help='an identifier for the category')
         
     parser.add_argument(
-        '--all',
+        '-a', '--all',
         action='store_true',
         default=False,
         help='show history of uuid')
@@ -134,6 +134,7 @@ def add_retrieve_category_parser(subparsers, parent_parser):
     parser.add_argument(
         '--range',
         nargs=2,
+        metavar=('START', 'END'),
         default=None,
         help='show history of uuid within the range')
 
@@ -263,7 +264,6 @@ def do_retrieve_category(args, config):
     else:
         raise CategoryException("Category not found: {}".format(category_id))
         
-        
 def do_create_category(args, config):
     category_id = args.category_id
     category_name = args.category_name
@@ -352,8 +352,7 @@ def do_test(args, config):
 def filter_output(result):    
     catlist = result.split(',',1)
     output = catlist[1]
-    output = output.replace("category_name","name") \
-                .replace("category_id","uuid").replace("\\","")
+    output = output.replace("\\","")
     output = output[:-1]
     return output
 
@@ -371,8 +370,7 @@ def refine_output(inputstr):
     return joutput
 
 def amend_category_fields(inputstr):
-    output = inputstr.replace("category_name","name") \
-                .replace("category_id","uuid").replace("\\","")
+    output = inputstr.replace("\\","")
     return output
 
 def load_config():

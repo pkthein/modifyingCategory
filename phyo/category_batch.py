@@ -95,10 +95,10 @@ class CategoryBatch:
             else:
                 retVal.append(response)
         
-            while str(response['prev_state']) != 'genesis':
+            while str(response['prev_block']) != 'genesis':
                 
                 (category_id, category_name, description, action, prev , cur, 
-                timestamp) = self._get_payload_(int(response['prev_state'])).\
+                timestamp) = self._get_payload_(int(response['prev_block'])).\
                                 decode().split(',')
                 
                 response = self._reconstruct_response(category_id, 
@@ -113,8 +113,7 @@ class CategoryBatch:
                 else:
                     retVal.append(response)
             
-            retVal = str(retVal).replace('category_id', 'uuid'). \
-                        replace('category_name', 'name')
+            retVal = str(retVal)
             
             return json.dumps(retVal)
         else:        
@@ -138,14 +137,14 @@ class CategoryBatch:
             
             jresponse = json.loads(response)
             
-            if jresponse['category_name'] == category_name and \
+            if jresponse['name'] == category_name and \
                 jresponse['description'] == description:
                 return None
             else:
                 cur = self._get_block_num()
                 return self.send_category_transactions(category_id, 
                             category_name, description, "update", private_key, 
-                            public_key, jresponse['cur_state'], cur, 
+                            public_key, jresponse['cur_block'], cur, 
                             str(datetime.datetime.utcnow()))
                             
         return None
@@ -204,9 +203,9 @@ class CategoryBatch:
     
     def _reconstruct_response(self, category_id, category_name, description, 
                                 action, prev , cur, timestamp):
-        return {'category_id': category_id,'category_name': category_name,
+        return {'uuid': category_id,'name': category_name,
                 'description': description, 'timestamp': timestamp, 
-                'prev_state': prev, 'cur_state': cur}
+                'prev_block': prev, 'cur_block': cur}
         
     def _send_request(
             self, suffix, data=None,
