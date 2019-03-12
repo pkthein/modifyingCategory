@@ -94,14 +94,14 @@ class CategoryTransactionHandler(TransactionHandler):
         if action == "create" and stored_category_id is not None:
             raise InvalidTransaction("Invalid Action-category already exists.")
 
-        elif action == "create":
+        if action == "create":
             category = create_category_payload(category_id, category_name, 
                                     description, prev, cur, timestamp)
             # stored_category_id = category_id
             stored_category = category
             _display("Created a category.")
         
-        elif action == "update":
+        if action == "update":
             category = create_category_payload(category_id, category_name, 
                                     description, prev , cur, timestamp)
             # stored_category_id = category_id

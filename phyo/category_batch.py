@@ -263,7 +263,7 @@ class CategoryBatch:
             # payload_encoding="csv-utf8",
             payload_sha512 = _sha512(payload),
             batcher_public_key = self._public_key,
-            nonce=time.time().hex().encode()
+            nonce = time.time().hex().encode()
         ).SerializeToString()
         
         
@@ -278,7 +278,6 @@ class CategoryBatch:
         )
         
         batch_list = self._create_batch_list([transaction])
-        
         return self._send_request(
             "batches", batch_list.SerializeToString(),
             "application/octet-stream"
