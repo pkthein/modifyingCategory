@@ -28,14 +28,14 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 
 LOGGER = logging.getLogger(__name__)
 ################################################################################
-#                               LIBS & DEPS                                    #
+#                                STATE OBJ                                     #
 ################################################################################
 class StateEntry:
     def __init__(self, address, data):
         self.address = address
         self.data = data
 ################################################################################
-#                               LIBS & DEPS                                    #
+#                               HANDLER OBJ                                    #
 ################################################################################
 class CategoryTransactionHandler(TransactionHandler):
     def __init__(self, namespace_prefix):
@@ -148,3 +148,6 @@ def _display(msg):
     for line in msg:
         LOGGER.debug("+ " + line.center(length) + " +")
     LOGGER.debug("+" + (length + 2) * "-" + "+")
+################################################################################
+#                                                                              #
+################################################################################
