@@ -59,7 +59,6 @@ class CategoryTransactionHandler(TransactionHandler):
 
     def apply(self, transaction, context):
 
-        stored_category_str = ""
         try:
             # The payload is csv utf-8 encoded string
             (category_id, category_name, description, action, prev , cur, 
@@ -79,9 +78,7 @@ class CategoryTransactionHandler(TransactionHandler):
         if len(state_entries) != 0:
             try:
 
-                # stored_category_id, stored_category_str = \
-                #     state_entries[0].data.decode().split(",",1)
-                stored_category = json.loads(stored_category_str)
+                stored_category = json.loads(state_entries[0].data.decode())
                 stored_category_id = stored_category["uuid"]
                 
             except ValueError:
@@ -94,23 +91,19 @@ class CategoryTransactionHandler(TransactionHandler):
         if action == "create" and stored_category_id is not None:
             raise InvalidTransaction("Invalid Action-category already exists.")
 
-        if action == "create":
+        elif action == "create":
             category = create_category_payload(category_id, category_name, 
                                     description, prev, cur, timestamp)
-            # stored_category_id = category_id
             stored_category = category
             _display("Created a category.")
         
-        if action == "update":
+        elif action == "update" and stored_category_id is not None:
             category = create_category_payload(category_id, category_name, 
                                     description, prev , cur, timestamp)
-            # stored_category_id = category_id
             stored_category = category
             _display("Updated a category.")
         
-        
         stored_cat_str = json.dumps(stored_category)
-        # data=",".join([stored_category_id, stored_cat_str]).encode()
         data = stored_cat_str.encode()
         addresses = context.set_state({data_address:data})
      

@@ -142,7 +142,6 @@ class CategoryBatch:
                 return None
             else:
                 cur = self._get_block_num()
-                print(cur, jresponse["cur_block"], '@ 145')
                 return self.send_category_transactions(category_id, 
                             category_name, description, "update", private_key, 
                             public_key, jresponse["cur_block"], cur, 
