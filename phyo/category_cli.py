@@ -45,7 +45,7 @@ from sawtooth_category.category_batch import CategoryBatch
 from sawtooth_category.exceptions import CategoryException
 
 
-DISTRIBUTION_NAME = 'sawtooth-category'
+DISTRIBUTION_NAME = "sawtooth-category"
 ################################################################################
 def create_console_handler(verbose_level):
     clog = logging.StreamHandler()
@@ -55,11 +55,11 @@ def create_console_handler(verbose_level):
         datefmt="%H:%M:%S",
         reset=True,
         log_colors={
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red',
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red",
         })
 
     clog.setFormatter(formatter)
@@ -81,118 +81,118 @@ def setup_loggers(verbose_level):
 #                                   OBJ                                        #
 ################################################################################
 def add_create_parser(subparsers, parent_parser):
-    parser = subparsers.add_parser('create', parents=[parent_parser])
+    parser = subparsers.add_parser("create", parents=[parent_parser])
 
     parser.add_argument(
-        'category_id',
+        "category_id",
         type=str,
-        help='category identifier')
+        help="category identifier")
     
     parser.add_argument(
-        'category_name',
+        "category_name",
         type=str,
-        help='Provide category name')
+        help="Provide category name")
     
     parser.add_argument(
-        'description',
+        "description",
         type=str,
-        help='provide description')
+        help="provide description")
       
     parser.add_argument(
-        'private_key',
+        "private_key",
         type=str,
-        help='Provide User Private Key')
+        help="Provide User Private Key")
     
     parser.add_argument(
-        'public_key',
+        "public_key",
         type=str,
-        help='Provide User Public Key')
+        help="Provide User Public Key")
     
     parser.add_argument(
-        '--disable-client-validation',
-        action='store_true',
+        "--disable-client-validation",
+        action="store_true",
         default=False,
-        help='disable client validation')
+        help="disable client validation")
 
 def add_list_category_parser(subparsers, parent_parser):
-    subparsers.add_parser('list-category', parents=[parent_parser])
+    subparsers.add_parser("list-category", parents=[parent_parser])
 
 def add_retrieve_category_parser(subparsers, parent_parser):
-    parser = subparsers.add_parser('retrieve', parents=[parent_parser])
+    parser = subparsers.add_parser("retrieve", parents=[parent_parser])
 
     parser.add_argument(
-        'category_id',
+        "category_id",
         type=str,
-        help='an identifier for the category')
+        help="an identifier for the category")
         
     parser.add_argument(
-        '-a', '--all',
-        action='store_true',
+        "-a", "--all",
+        action="store_true",
         default=False,
-        help='show history of uuid')
+        help="show history of uuid")
         
     parser.add_argument(
-        '--range',
+        "--range",
         nargs=2,
-        metavar=('START', 'END'),
+        metavar=("START", "END"),
         default=None,
-        help='show history of uuid within the range')
+        help="show history of uuid within the range")
 
 def add_update_category_parser(subparsers, parent_parser):
-    parser = subparsers.add_parser('update', parents=[parent_parser])
+    parser = subparsers.add_parser("update", parents=[parent_parser])
 
     parser.add_argument(
-        'category_id',
+        "category_id",
         type=str,
-        help='an identifier for the category')
+        help="an identifier for the category")
         
     parser.add_argument(
-        'category_name',
+        "category_name",
         type=str,
-        help='Provide category name')
+        help="Provide category name")
     
     parser.add_argument(
-        'description',
+        "description",
         type=str,
-        help='provide description')
+        help="provide description")
       
     parser.add_argument(
-        'private_key',
+        "private_key",
         type=str,
-        help='Provide User Private Key')
+        help="Provide User Private Key")
     
     parser.add_argument(
-        'public_key',
+        "public_key",
         type=str,
-        help='Provide User Public Key')
+        help="Provide User Public Key")
     
     parser.add_argument(
-        '--disable-client-validation',
-        action='store_true',
+        "--disable-client-validation",
+        action="store_true",
         default=False,
-        help='disable client validation')
+        help="disable client validation")
 
 def add_test_category_parser(subparsers, parent_parser):
-    subparsers.add_parser('test', parents=[parent_parser])
+    subparsers.add_parser("test", parents=[parent_parser])
 
 def create_parent_parser(prog_name):
     parent_parser = argparse.ArgumentParser(prog=prog_name, add_help=False)
     parent_parser.add_argument(
-        '-v', '--verbose',
-        action='count',
-        help='enable more verbose output')
+        "-v", "--verbose",
+        action="count",
+        help="enable more verbose output")
 
     try:
         version = pkg_resources.get_distribution(DISTRIBUTION_NAME).version
     except pkg_resources.DistributionNotFound:
-        version = 'UNKNOWN'
+        version = "UNKNOWN"
 
     parent_parser.add_argument(
-        '-V', '--version',
-        action='version',
-        version=(DISTRIBUTION_NAME + ' (Hyperledger Sawtooth) version {}')
+        "-V", "--version",
+        action="version",
+        version=(DISTRIBUTION_NAME + " (Hyperledger Sawtooth) version {}")
         .format(version),
-        help='print version information this is modded')
+        help="print version information this is modded")
 
     return parent_parser
 
@@ -203,7 +203,7 @@ def create_parser(prog_name):
         parents=[parent_parser],
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    subparsers = parser.add_subparsers(title='subcommands', dest='command')
+    subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
     add_create_parser(subparsers, parent_parser)
     add_list_category_parser(subparsers, parent_parser)
@@ -217,7 +217,7 @@ def create_parser(prog_name):
 #                               FUNCTIONS                                      #
 ################################################################################
 def do_list_category(args, config):
-    b_url = config.get('DEFAULT', 'url')
+    b_url = config.get("DEFAULT", "url")
   
     client = CategoryBatch(base_url=b_url)
 
@@ -226,9 +226,10 @@ def do_list_category(args, config):
     if category_list is not None:
         
         if str(category_list) != "[]":
-            result = refine_output(str(category_list))
+            result = ("[" + str(category_list)[3:-2] + "]").replace("b", "")\
+                        .replace("'", "")
             result = json.loads(result)
-            result.sort(key=lambda x:x['timestamp'], reverse=True)
+            result.sort(key=lambda x:x["timestamp"], reverse=True)
             result = json.dumps(result)
             
             output = ret_msg("success", "OK", "ListOf:CategoryRecord", result)
@@ -248,15 +249,14 @@ def do_retrieve_category(args, config):
     if range_flag != None:
         all_flag = True
     
-    b_url = config.get('DEFAULT', 'url')
+    b_url = config.get("DEFAULT", "url")
     client = CategoryBatch(base_url=b_url)
     data = client.retreive_category(category_id, all_flag, range_flag)
     
     if data is not None:
         
         if all_flag == False:
-            result = filter_output(str(data))
-            output = ret_msg("success", "OK", "CategoryRecord", result)
+            output = ret_msg("success", "OK", "CategoryRecord", data.decode())
         else:
             output = ret_msg("success", "OK", "CategoryRecord", data)
             
@@ -275,23 +275,23 @@ def do_create_category(args, config):
     key = json.loads(payload)
     key["publickey"] = public_key
     key["privatekey"] = private_key
-    key["allowedrole"]=[{"role":"admin"},{"role":"member"}]
+    key["allowedrole"] = [{"role":"admin"}, {"role":"member"}]
     payload = json.dumps(key)
     
-    headers = {'content-type': 'application/json'}
+    headers = {"content-type": "application/json"}
     response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", 
                     data=json.dumps(key), headers=headers)
     output = response.content.decode("utf-8").strip()
     statusinfo = json.loads(output)
        
-    if statusinfo.get('status') and statusinfo.get('message'):
+    if statusinfo.get("status") and statusinfo.get("message"):
             
-        status = statusinfo['status']
-        message = statusinfo['message']
+        status = statusinfo["status"]
+        message = statusinfo["message"]
             
-        if status == 'success' and message == 'authorized':
+        if status == "success" and message == "authorized":
             
-            b_url = config.get('DEFAULT', 'url')
+            b_url = config.get("DEFAULT", "url")
             client = CategoryBatch(base_url=b_url)
             response = client.create_category(category_id, category_name, 
                             description, private_key, public_key)
@@ -316,20 +316,20 @@ def do_update_category(args, config):
     key["allowedrole"]=[{"role":"admin"},{"role":"member"}]
     payload = json.dumps(key)
     
-    headers = {'content-type': 'application/json'}
+    headers = {"content-type": "application/json"}
     response = requests.post("http://127.0.0.1:818/api/sparts/ledger/auth", 
                     data=json.dumps(key), headers=headers)
     output = response.content.decode("utf-8").strip()
     statusinfo = json.loads(output)
     
-    if statusinfo.get('status') and statusinfo.get('message'):
+    if statusinfo.get("status") and statusinfo.get("message"):
             
-        status = statusinfo['status']
-        message = statusinfo['message']
+        status = statusinfo["status"]
+        message = statusinfo["message"]
             
-        if status == 'success' and message == 'authorized':
+        if status == "success" and message == "authorized":
             
-            b_url = config.get('DEFAULT', 'url')
+            b_url = config.get("DEFAULT", "url")
             client = CategoryBatch(base_url=b_url)
             response = client.update_category(category_id, category_name, 
                             description, private_key, public_key)
@@ -341,7 +341,7 @@ def do_update_category(args, config):
         print(output)
         
 def do_test(args, config):
-    b_url = config.get('DEFAULT', 'url')
+    b_url = config.get("DEFAULT", "url")
   
     client = CategoryBatch(base_url=b_url)
 
@@ -349,26 +349,6 @@ def do_test(args, config):
 ################################################################################
 #                                   PRINT                                      #
 ################################################################################
-def filter_output(result):    
-    catlist = result.split(',',1)
-    output = catlist[1]
-    output = output.replace("\\","")
-    output = output[:-1]
-    return output
-
-def refine_output(inputstr):
-    outputstr = inputstr.replace('b\'','') \
-                .replace('}\'','}').replace("}]","")
-    catlist = outputstr.split("},")
-    categorylist = []
-    for line in catlist:
-        record = "{"+line.split(",{",1)[-1]+"}"
-        categorylist.append(record)
-    joutput = str(categorylist)
-    joutput = joutput.replace("'{","{").replace("}'","}").replace(", { {",", {")
-    joutput = amend_category_fields(joutput)
-    return joutput
-
 def amend_category_fields(inputstr):
     output = inputstr.replace("\\","")
     return output
@@ -376,7 +356,7 @@ def amend_category_fields(inputstr):
 def load_config():
     
     config = configparser.ConfigParser()
-    config.set('DEFAULT', 'url', 'http://127.0.0.1:8008')
+    config.set("DEFAULT", "url", "http://127.0.0.1:8008")
     return config
 
 def print_msg(response):
@@ -404,15 +384,15 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
 
     config = load_config()
 
-    if args.command == 'create':
+    if args.command == "create":
         do_create_category(args, config)
-    elif args.command == 'list-category':
+    elif args.command == "list-category":
         do_list_category(args, config)
-    elif args.command == 'retrieve':
+    elif args.command == "retrieve":
         do_retrieve_category(args, config)
-    elif args.command == 'update':
+    elif args.command == "update":
         do_update_category(args, config)
-    elif args.command == 'test':
+    elif args.command == "test":
         do_test(args, config)
     else:
         raise CategoryException("invalid command: {}".format(args.command))
@@ -433,7 +413,7 @@ def main_wrapper():
         main()
     except CategoryException as err:
         errmsg = str(err)
-        if '404' in errmsg:
+        if "404" in errmsg:
             exp = ret_msg("failed","404 Not Found","EmptyRecord","{}")
             print(CategoryException(exp))
            

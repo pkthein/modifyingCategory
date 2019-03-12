@@ -58,7 +58,7 @@ class CategoryBatch:
                             private_key, public_key):
         cur = self._get_block_num();
         return self.send_category_transactions(category_id, category_name,
-                    description, "create", private_key, public_key, 'genesis', 
+                    description, "create", private_key, public_key, "0", 
                     cur, str(datetime.datetime.utcnow()))
                                 
     def list_category(self):
@@ -84,29 +84,29 @@ class CategoryBatch:
             retVal = []
             response = self.retreive_category(category_id).decode()
             
-            response = response[response.find('{'):]
+            response = response[response.find("{"):]
             response = json.loads(response)
             
             if range_flag != None:
-                curTime = int(response['timestamp'].split()[0].replace('-', ''))
+                curTime = int(response["timestamp"].split()[0].replace("-", ""))
                 if (curTime <= int(range_flag[1]) and 
                         curTime >= int(range_flag[0])):
                     retVal.append(response)
             else:
                 retVal.append(response)
         
-            while str(response['prev_block']) != 'genesis':
+            while str(response["prev_block"]) != "0":
                 
                 (category_id, category_name, description, action, prev , cur, 
-                timestamp) = self._get_payload_(int(response['prev_block'])).\
-                                decode().split(',')
+                timestamp) = self._get_payload_(int(response["prev_block"])).\
+                                decode().split(",")
                 
                 response = self._reconstruct_response(category_id, 
                                 category_name, description, action, prev , cur, 
                                 timestamp)
                 
                 if range_flag != None:
-                    curTime = int(timestamp.split()[0].replace('-', ''))
+                    curTime = int(timestamp.split()[0].replace("-", ""))
                     if (curTime <= int(range_flag[1]) and 
                             curTime >= int(range_flag[0])):
                         retVal.append(response)
@@ -133,18 +133,19 @@ class CategoryBatch:
         
         if response_bytes != None:
             response = str(response_bytes)
-            response = response[response.find('{') : response.find('}') + 1]
+            response = response[response.find("{") : response.find("}") + 1]
             
             jresponse = json.loads(response)
             
-            if jresponse['name'] == category_name and \
-                jresponse['description'] == description:
+            if jresponse["name"] == category_name and \
+                jresponse["description"] == description:
                 return None
             else:
                 cur = self._get_block_num()
+                print(cur, jresponse["cur_block"], '@ 145')
                 return self.send_category_transactions(category_id, 
                             category_name, description, "update", private_key, 
-                            public_key, jresponse['cur_block'], cur, 
+                            public_key, jresponse["cur_block"], cur, 
                             str(datetime.datetime.utcnow()))
                             
         return None
@@ -156,22 +157,22 @@ class CategoryBatch:
             "blocks?={}".format(category_prefix)
         )
         
-        if result != None or result != '':
+        if result != None or result != "":
             result = json.loads(result)
             
-            payload = result['data'][-4]['batches'][0]['transactions'][0]['payload']
+            payload = result["data"][-4]["batches"][0]["transactions"][0]["payload"]
             print(payload, type(payload))
             print(base64.b64decode(payload))
-            # print(result['data'][-4]['header_signature'])
+            # print(result["data"][-4]["header_signature"])
 ################################################################################
 #                           PRIVATE FUNCTIONS                                  #
 ################################################################################
     def _get_prefix(self):
-        return _sha512('category'.encode('utf-8'))[0:6]
+        return _sha512("category".encode("utf-8"))[0:6]
 
     def _get_address(self, category_id):
         category_prefix = self._get_prefix()
-        address = _sha512(category_id.encode('utf-8'))[0:64]
+        address = _sha512(category_id.encode("utf-8"))[0:64]
         return category_prefix + address
     
     def _get_block_num(self):
@@ -181,9 +182,9 @@ class CategoryBatch:
             "blocks?={}".format(category_prefix)
         )
         
-        if result != None or result != '':
+        if result != None or result != "":
             result = json.loads(result)
-            return str(len(result['data']))
+            return str(len(result["data"]))
         return None
     
     def _get_payload_(self, blocknum):
@@ -193,19 +194,19 @@ class CategoryBatch:
             "blocks?={}".format(category_prefix)
         )
         
-        if result != None or result != '':
+        if result != None or result != "":
             result = json.loads(result)
-            payload = result['data'][-(blocknum + 1)]['batches'][0]\
-                        ['transactions'][0]['payload']
+            payload = result["data"][-(blocknum + 1)]["batches"][0]\
+                        ["transactions"][0]["payload"]
             
             return base64.b64decode(payload)
         return None
     
     def _reconstruct_response(self, category_id, category_name, description, 
                                 action, prev , cur, timestamp):
-        return {'uuid': category_id,'name': category_name,
-                'description': description, 'timestamp': timestamp, 
-                'prev_block': prev, 'cur_block': cur}
+        return {"uuid": category_id,"name": category_name,
+                "description": description, "timestamp": timestamp, 
+                "prev_block": prev, "cur_block": cur}
         
     def _send_request(
             self, suffix, data=None,
@@ -217,7 +218,7 @@ class CategoryBatch:
 
         headers = {}
         if content_type is not None:
-            headers['Content-Type'] = content_type
+            headers["Content-Type"] = content_type
 
         try:
             if data is not None:
@@ -266,7 +267,7 @@ class CategoryBatch:
         ).SerializeToString()
         
         
-        signature = CryptoFactory(create_context('secp256k1')) \
+        signature = CryptoFactory(create_context("secp256k1")) \
             .new_signer(Secp256k1PrivateKey.from_hex(self._private_key))\
             .sign(header)
 
@@ -280,7 +281,7 @@ class CategoryBatch:
         
         return self._send_request(
             "batches", batch_list.SerializeToString(),
-            'application/octet-stream'
+            "application/octet-stream"
         )
 
     def _create_batch_list(self, transactions):
@@ -291,7 +292,7 @@ class CategoryBatch:
             transaction_ids = transaction_signatures
         ).SerializeToString()
 
-        signature = CryptoFactory(create_context('secp256k1')) \
+        signature = CryptoFactory(create_context("secp256k1")) \
             .new_signer(Secp256k1PrivateKey.from_hex(self._private_key)) \
             .sign(header)
 

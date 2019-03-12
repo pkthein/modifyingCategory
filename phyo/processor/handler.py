@@ -43,15 +43,15 @@ class CategoryTransactionHandler(TransactionHandler):
 
     @property
     def family_name(self):
-        return 'category'
+        return "category"
 
     @property
     def family_versions(self):
-        return ['1.0']
+        return ["1.0"]
 
     @property
     def encodings(self):
-        return ['csv-utf8']
+        return ["csv-utf8"]
 
     @property
     def namespaces(self):
@@ -64,6 +64,7 @@ class CategoryTransactionHandler(TransactionHandler):
             # The payload is csv utf-8 encoded string
             (category_id, category_name, description, action, prev , cur, 
                 timestamp) = transaction.payload.decode().split(",")
+                
         except ValueError:
             raise InvalidTransaction("Invalid payload")
 
@@ -73,13 +74,16 @@ class CategoryTransactionHandler(TransactionHandler):
                                                 category_id)
 
         state_entries = context.get_state([data_address])
+        
         # Retrieve data from state storage
         if len(state_entries) != 0:
             try:
 
-                stored_category_id, stored_category_str = \
-                state_entries[0].data.decode().split(",",1)
+                # stored_category_id, stored_category_str = \
+                #     state_entries[0].data.decode().split(",",1)
                 stored_category = json.loads(stored_category_str)
+                stored_category_id = stored_category["uuid"]
+                
             except ValueError:
                 raise InternalError("Failed to deserialize data.")
 
@@ -90,24 +94,24 @@ class CategoryTransactionHandler(TransactionHandler):
         if action == "create" and stored_category_id is not None:
             raise InvalidTransaction("Invalid Action-category already exists.")
 
-
-        if action == "create":
+        elif action == "create":
             category = create_category_payload(category_id, category_name, 
                                     description, prev, cur, timestamp)
-            stored_category_id = category_id
+            # stored_category_id = category_id
             stored_category = category
             _display("Created a category.")
         
-        if action == 'update':
+        elif action == "update":
             category = create_category_payload(category_id, category_name, 
                                     description, prev , cur, timestamp)
-            stored_category_id = category_id
+            # stored_category_id = category_id
             stored_category = category
             _display("Updated a category.")
         
         
         stored_cat_str = json.dumps(stored_category)
-        data=",".join([stored_category_id,stored_cat_str]).encode()
+        # data=",".join([stored_category_id, stored_cat_str]).encode()
+        data = stored_cat_str.encode()
         addresses = context.set_state({data_address:data})
      
         return addresses
@@ -115,26 +119,26 @@ class CategoryTransactionHandler(TransactionHandler):
 
 def create_category_payload(category_id,category_name,description, 
                             prev, cur, timestamp):
-    categoryP = {'uuid': category_id,'name': category_name,
-                'description': description, 'timestamp': timestamp, 
-                'prev_block': prev, 'cur_block': cur}
+    categoryP = {"uuid": category_id,"name": category_name,
+                "description": description, "timestamp": timestamp, 
+                "prev_block": prev, "cur_block": cur}
     return categoryP
 
 
 def validate_transaction( category_id,category_name,description,action):
     if not category_id:
-        raise InvalidTransaction('Category ID is required')
+        raise InvalidTransaction("Category ID is required")
 
     if not action:
-        raise InvalidTransaction('Action is required')
+        raise InvalidTransaction("Action is required")
 
-    if action not in ('create', 'list-category', 'retrieve', 'update'):
-        raise InvalidTransaction('Invalid action: {}'.format(action))
+    if action not in ("create", "list-category", "retrieve", "update"):
+        raise InvalidTransaction("Invalid action: {}".format(action))
 
 
 def create_category_address(namespace_prefix, category_id):
     return namespace_prefix + \
-        hashlib.sha512(category_id.encode('utf-8')).hexdigest()[:64]
+        hashlib.sha512(category_id.encode("utf-8")).hexdigest()[:64]
 
 
 def _display(msg):
