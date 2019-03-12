@@ -136,7 +136,7 @@ def add_retrieve_category_parser(subparsers, parent_parser):
         nargs=2,
         metavar=("START", "END"),
         default=None,
-        help="show history of uuid within the range")
+        help="show history of uuid within the range; FORMAT : yyyymmdd")
 
 def add_update_category_parser(subparsers, parent_parser):
     parser = subparsers.add_parser("update", parents=[parent_parser])
