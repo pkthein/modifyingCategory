@@ -94,16 +94,21 @@ class CategoryBatch:
                     retVal.append(response)
             else:
                 retVal.append(response)
-        
+            
             while str(response["prev_block"]) != "0":
                 
-                (category_id, category_name, description, action, prev , cur, 
-                timestamp) = self._get_payload_(int(response["prev_block"])).\
-                                decode().split(",")
+                response = json.loads(self._get_payload_(
+                                int(response["prev_block"])).decode())
                 
-                response = self._reconstruct_response(category_id, 
-                                category_name, description, action, prev , cur, 
-                                timestamp)
+                category_id     = response["category_id"]
+                category_name   = response["category_name"]
+                description     = response["description"]
+                # action          = response["action"]
+                prev            = response["prev_block"]
+                cur             = response["cur_block"]
+                timestamp       = response["timestamp"] 
+                
+                del response["action"]
                 
                 if range_flag != None:
                     curTime = int(timestamp.split()[0].replace("-", ""))
@@ -112,7 +117,7 @@ class CategoryBatch:
                         retVal.append(response)
                 else:
                     retVal.append(response)
-            
+                
             retVal = str(retVal)
             
             return json.dumps(retVal)
@@ -137,7 +142,7 @@ class CategoryBatch:
             
             jresponse = json.loads(response)
             
-            if jresponse["name"] == category_name and \
+            if jresponse["category_name"] == category_name and \
                 jresponse["description"] == description:
                 return None
             else:
@@ -161,7 +166,8 @@ class CategoryBatch:
             
             payload = result["data"][-4]["batches"][0]["transactions"][0]["payload"]
             print(payload, type(payload))
-            print(base64.b64decode(payload))
+            ret = json.loads(base64.b64decode(payload).decode())
+            print(ret, type(ret))
             # print(result["data"][-4]["header_signature"])
 ################################################################################
 #                           PRIVATE FUNCTIONS                                  #
@@ -200,12 +206,6 @@ class CategoryBatch:
             
             return base64.b64decode(payload)
         return None
-    
-    def _reconstruct_response(self, category_id, category_name, description, 
-                                action, prev , cur, timestamp):
-        return {"uuid": category_id,"name": category_name,
-                "description": description, "timestamp": timestamp, 
-                "prev_block": prev, "cur_block": cur}
         
     def _send_request(
             self, suffix, data=None,
@@ -246,9 +246,17 @@ class CategoryBatch:
         self._public_key = public_key
         self._private_key = private_key
         
-        payload = ",".join([category_id, category_name, description, action, 
-                        prev, cur, timestamp]).encode()
-        
+        payload = {
+            "category_id"   : str(category_id),
+            "category_name" : str(category_name),
+            "description"   : str(description),
+            "action"        : str(action),
+            "prev_block"    : str(prev),
+            "cur_block"     : str(cur),
+            "timestamp"     : str(timestamp)
+        }
+        payload = json.dumps(payload).encode()
+
         # Form the address
         address = self._get_address(category_id)
         

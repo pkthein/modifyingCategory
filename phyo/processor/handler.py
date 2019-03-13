@@ -61,9 +61,15 @@ class CategoryTransactionHandler(TransactionHandler):
 
         try:
             # The payload is csv utf-8 encoded string
-            (category_id, category_name, description, action, prev , cur, 
-                timestamp) = transaction.payload.decode().split(",")
-                
+            payload = json.loads(transaction.payload.decode())
+            category_id     = payload["category_id"]
+            category_name   = payload["category_name"]
+            description     = payload["description"]
+            action          = payload["action"]
+            prev            = payload["prev_block"]
+            cur             = payload["cur_block"]
+            timestamp       = payload["timestamp"]
+            
         except ValueError:
             raise InvalidTransaction("Invalid payload")
 
@@ -79,7 +85,7 @@ class CategoryTransactionHandler(TransactionHandler):
             try:
 
                 stored_category = json.loads(state_entries[0].data.decode())
-                stored_category_id = stored_category["uuid"]
+                stored_category_id = stored_category["category_id"]
                 
             except ValueError:
                 raise InternalError("Failed to deserialize data.")
@@ -112,7 +118,7 @@ class CategoryTransactionHandler(TransactionHandler):
 
 def create_category_payload(category_id,category_name,description, 
                             prev, cur, timestamp):
-    categoryP = {"uuid": category_id,"name": category_name,
+    categoryP = {"category_id": category_id, "category_name": category_name,
                 "description": description, "timestamp": timestamp, 
                 "prev_block": prev, "cur_block": cur}
     return categoryP
