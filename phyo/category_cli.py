@@ -32,14 +32,10 @@ import json
 
 from colorlog import ColoredFormatter
 
-# import sawtooth_signing.secp256k1_signer as signing
-
-#
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 from sawtooth_signing import ParseError
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
-#
 
 from sawtooth_category.category_batch import CategoryBatch
 from sawtooth_category.exceptions import CategoryException
@@ -172,9 +168,6 @@ def add_update_category_parser(subparsers, parent_parser):
         default=False,
         help="disable client validation")
 
-def add_test_category_parser(subparsers, parent_parser):
-    subparsers.add_parser("test", parents=[parent_parser])
-
 def create_parent_parser(prog_name):
     parent_parser = argparse.ArgumentParser(prog=prog_name, add_help=False)
     parent_parser.add_argument(
@@ -210,8 +203,6 @@ def create_parser(prog_name):
     add_retrieve_category_parser(subparsers, parent_parser)
     add_update_category_parser(subparsers, parent_parser)
     
-    add_test_category_parser(subparsers, parent_parser)
-    
     return parser
 ################################################################################
 #                               FUNCTIONS                                      #
@@ -226,7 +217,7 @@ def do_list_category(args, config):
     if category_list is not None:
         
         if str(category_list) != "[]":
-            result = ("[" + str(category_list)[3:-2] + "]").replace("b", "")\
+            result = ("[" + str(category_list)[3:-2] + "]").replace("b'", "")\
                         .replace("'", "")
             result = json.loads(result)
             result.sort(key=lambda x:x["timestamp"], reverse=True)
@@ -258,7 +249,7 @@ def do_retrieve_category(args, config):
         if all_flag == False:
             output = ret_msg("success", "OK", "CategoryRecord", data.decode())
         else:
-            output = ret_msg("success", "OK", "CategoryRecord", data)
+            output = ret_msg("success", "OK", "CategoryRecord", json.loads(data))
             
         print(output)
     else:
@@ -340,12 +331,6 @@ def do_update_category(args, config):
     else:
         print(output)
         
-def do_test(args, config):
-    b_url = config.get("DEFAULT", "url")
-  
-    client = CategoryBatch(base_url=b_url)
-
-    category_test = client.test_category()
 ################################################################################
 #                                   PRINT                                      #
 ################################################################################
@@ -392,8 +377,6 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
         do_retrieve_category(args, config)
     elif args.command == "update":
         do_update_category(args, config)
-    elif args.command == "test":
-        do_test(args, config)
     else:
         raise CategoryException("invalid command: {}".format(args.command))
 

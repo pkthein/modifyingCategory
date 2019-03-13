@@ -24,14 +24,11 @@ import requests
 import yaml
 import datetime
 import json
-#import sawtooth_signing.secp256k1_signer as signing
 
-#
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 from sawtooth_signing import ParseError
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
-#
 
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
@@ -91,34 +88,33 @@ class CategoryBatch:
                 curTime = int(response["timestamp"].split()[0].replace("-", ""))
                 if (curTime <= int(range_flag[1]) and 
                         curTime >= int(range_flag[0])):
-                    retVal.append(response)
+                    jresponse = json.dumps(response)
+                    retVal.append(jresponse)
             else:
-                retVal.append(response)
+                jresponse = json.dumps(response)
+                retVal.append(jresponse)
             
             while str(response["prev_block"]) != "0":
                 
                 response = json.loads(self._get_payload_(
                                 int(response["prev_block"])).decode())
                 
-                category_id     = response["category_id"]
-                category_name   = response["category_name"]
-                description     = response["description"]
-                # action          = response["action"]
-                prev            = response["prev_block"]
-                cur             = response["cur_block"]
                 timestamp       = response["timestamp"] 
                 
                 del response["action"]
                 
+                jresponse = json.dumps(response)
+                
                 if range_flag != None:
                     curTime = int(timestamp.split()[0].replace("-", ""))
-                    if (curTime <= int(range_flag[1]) and 
-                            curTime >= int(range_flag[0])):
-                        retVal.append(response)
+                    if curTime < int(range_flag[0]):
+                        break
+                    elif curTime <= int(range_flag[1]):
+                        retVal.append(jresponse)
                 else:
-                    retVal.append(response)
+                    retVal.append(jresponse)
                 
-            retVal = str(retVal)
+            retVal = str(retVal).replace("'", '')
             
             return json.dumps(retVal)
         else:        
@@ -153,22 +149,6 @@ class CategoryBatch:
                             str(datetime.datetime.utcnow()))
                             
         return None
-
-    def test_category(self):
-        category_prefix = self._get_prefix()
-        
-        result = self._send_request(
-            "blocks?={}".format(category_prefix)
-        )
-        
-        if result != None or result != "":
-            result = json.loads(result)
-            
-            payload = result["data"][-4]["batches"][0]["transactions"][0]["payload"]
-            print(payload, type(payload))
-            ret = json.loads(base64.b64decode(payload).decode())
-            print(ret, type(ret))
-            # print(result["data"][-4]["header_signature"])
 ################################################################################
 #                           PRIVATE FUNCTIONS                                  #
 ################################################################################
@@ -267,7 +247,6 @@ class CategoryBatch:
             inputs = [address],
             outputs = [address],
             dependencies = [],
-            # payload_encoding="csv-utf8",
             payload_sha512 = _sha512(payload),
             batcher_public_key = self._public_key,
             nonce = time.time().hex().encode()

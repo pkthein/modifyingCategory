@@ -20,10 +20,8 @@ import hashlib
 import logging
 import json
 from collections import OrderedDict
-#from sawtooth_sdk.processor.state import StateEntry
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.exceptions import InternalError
-#from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 from sawtooth_sdk.processor.handler import TransactionHandler
 
 LOGGER = logging.getLogger(__name__)

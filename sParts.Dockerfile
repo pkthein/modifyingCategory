@@ -7,6 +7,4 @@ COPY ./phyo/register_user.py /project/src/tp_category_1.0/sawtooth_category/regi
 
 RUN apt-get update && \
     apt-get install -y curl && \
-    rm -rf /var/lib/apt/lists/* && \
-    cd /project/src/tp_category_1.0 && \
-    python3 setup.py install \
+    rm -rf /var/lib/apt/lists/*
